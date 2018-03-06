@@ -1,5 +1,6 @@
 #include <iostream>
 #include <windows.h>
+//#include <vector>
 #include "C:\TwinCAT\ADSApi\TcAdsDll\Include\TcAdsDef.h" //结构体和常量的声明
 #include "C:\TwinCAT\ADSApi\TcAdsDll\Include\TcAdsAPI.h" // ADS函数的声明
 
@@ -7,10 +8,12 @@ using namespace std;
 
 long      nErr, nPort;	//定义端口变量
 AmsAddr   Addr;			//定义AMS地址变量
-int Counter = 0;;
+unsigned long Counter = 0;
 char chooseAction;
 bool run = true;
-int newValue;
+unsigned long newValue[5] = { 10,1,2,3,4 };
+unsigned long iValue = 10;
+char cArray = 'H';
 
 int Connect()
 {
@@ -19,7 +22,7 @@ int Connect()
 	{
 		return -1;
 	}
-	AmsNetId AmsId = { 5, 53, 53, 132, 1, 1 };
+	AmsNetId AmsId = { 5, 39, 221, 128, 1, 1 };
 	Addr.netId = AmsId;
 	Addr.port = 0x8888;
 
@@ -33,17 +36,21 @@ long Begin()
 
 long Read()
 {
-	return AdsSyncReadWriteReq(&Addr, 0x01, 0x02, sizeof(int), &Counter, 0, NULL);
+	return AdsSyncReadWriteReq(&Addr, 0x01, 0x02, sizeof(unsigned long), &Counter, 0, NULL);
 }
 
 long Stop()
 {
-	return AdsSyncReadWriteReq(&Addr, 0x02, 0x01, sizeof(int), &Counter, 0, NULL);
+	return AdsSyncReadWriteReq(&Addr, 0x02, 0x01, sizeof(unsigned long), &Counter, 0, NULL);
 }
 
-long OverWritten(int* value)
+long OverWritten()
 {
-	return AdsSyncReadWriteReq(&Addr, 0x03, 0x01, 0, NULL, sizeof(int), value);
+	//return AdsSyncReadWriteReq(&Addr, 0x03, 0x01, 0, NULL, sizeof(cArray), &cArray);
+
+	return AdsSyncReadWriteReqEx2(nPort, &Addr, 0x03, 0x01, 0, NULL, sizeof(newValue),
+		&newValue,
+		NULL);
 }
 
 long NewStart()
@@ -53,6 +60,8 @@ long NewStart()
 
 void main()
 {
+	unsigned long *te = newValue;
+	unsigned long ttt = *te;
 	cout << "C for Connect, B for Begin, R for Read" << endl
 		<< "S for Stop O for OverWritten, N for NewStart" << endl;
 	while (run)
@@ -75,9 +84,9 @@ void main()
 			cout << "Counter stopped value = " << Counter << endl;
 			break;
 		case 'O':
-			cout << "请输入数值" << endl;
-			cin >> newValue;
-			OverWritten(&newValue);
+			//cout << "请输入数值" << endl;
+			//cin >> newValue;
+			OverWritten();
 			break;
 		case 'N':
 			NewStart();
