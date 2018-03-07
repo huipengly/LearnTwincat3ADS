@@ -11,9 +11,11 @@ AmsAddr   Addr;			//定义AMS地址变量
 unsigned long Counter = 0;
 char chooseAction;
 bool run = true;
-double test[10000][7] = { 0 };
-double newValue[7] = { 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7 };
-//double newValue[7] = { 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7 };
+//double test[10000][7] = { 0 };
+double Value1[7] = { 0, 0, 0, 0, 0, 0, 0 };
+double Value2[7] = { 60, 0, 0, 0, 0, 10, 15 };
+double Value3[7] = { 0, 0, 0, 0, 0, 25, 25 };
+double newValue[7] = { 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7 };
 unsigned long iValue = 10;
 char cArray = 'H';
 
@@ -60,45 +62,29 @@ long NewStart()
 	return AdsSyncReadWriteReq(&Addr, 0x02, 0x02, 0, NULL, 0, NULL);
 }
 
-void main()
+int main()
 {
 //	unsigned long *te = newValue;
 //	unsigned long ttt = *te;
-	cout << "C for Connect, B for Begin, R for Read" << endl
-		<< "S for Stop O for OverWritten, N for NewStart" << endl;
-	while (run)
+	//cout << "C for Connect, B for Begin, R for Read" << endl
+	//	<< "S for Stop O for OverWritten, N for NewStart" << endl;
+
+	if (!Connect())
 	{
-		cin >> chooseAction;
-		switch (chooseAction)
-		{
-		case 'C':
-			Connect();
-			break;
-		case 'B':
-			Begin();
-			break;
-		case 'R':
-			Read();
-			cout << "Counter = " << Counter << endl;
-			break;
-		case 'S':
-			Stop();
-			cout << "Counter stopped value = " << Counter << endl;
-			break;
-		case 'O':
-			//cout << "请输入数值" << endl;
-			//cin >> newValue;
-			OverWritten();
-			break;
-		case 'N':
-			NewStart();
-			break;
-		case 'Z':
-			run = false;
-			break;
-		}
-	}
+		cout << "Connect success!" << endl;
+	};
+	//发送运动数据
+	AdsSyncReadWriteReqEx2(nPort, &Addr, 0x01, 0x01, 0, NULL, sizeof(Value1),&Value1,NULL);
+	AdsSyncReadWriteReqEx2(nPort, &Addr, 0x01, 0x01, 0, NULL, sizeof(Value2), &Value2, NULL);
+	AdsSyncReadWriteReqEx2(nPort, &Addr, 0x01, 0x01, 0, NULL, sizeof(Value3), &Value3, NULL);
+	//发送完成标志
+	AdsSyncReadWriteReqEx2(nPort, &Addr, 0x01, 0x02, 0, NULL, 0, NULL, NULL);
 
 	nErr = AdsPortClose(); //关闭ADS通讯端口
 	if (nErr) cerr << "Error: AdsPortClose: " << nErr << '\n'; //检查关闭通讯端口的操作是否执行成功
+
+	cout << "Send finished!" << endl;
+	cout << "press any key to close..." << endl;
+	getchar();
+	return 0;
 }
