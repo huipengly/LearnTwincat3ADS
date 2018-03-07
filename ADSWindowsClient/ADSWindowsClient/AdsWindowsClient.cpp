@@ -11,7 +11,9 @@ AmsAddr   Addr;			//定义AMS地址变量
 unsigned long Counter = 0;
 char chooseAction;
 bool run = true;
-unsigned long newValue[5] = { 10,1,2,3,4 };
+double test[10000][7] = { 0 };
+double newValue[7] = { 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7 };
+//double newValue[7] = { 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7 };
 unsigned long iValue = 10;
 char cArray = 'H';
 
@@ -48,7 +50,7 @@ long OverWritten()
 {
 	//return AdsSyncReadWriteReq(&Addr, 0x03, 0x01, 0, NULL, sizeof(cArray), &cArray);
 
-	return AdsSyncReadWriteReqEx2(nPort, &Addr, 0x03, 0x01, 0, NULL, sizeof(newValue),
+	return AdsSyncReadWriteReqEx2(nPort, &Addr, 0x01, 0x01, 0, NULL, sizeof(newValue),
 		&newValue,
 		NULL);
 }
@@ -60,8 +62,8 @@ long NewStart()
 
 void main()
 {
-	unsigned long *te = newValue;
-	unsigned long ttt = *te;
+//	unsigned long *te = newValue;
+//	unsigned long ttt = *te;
 	cout << "C for Connect, B for Begin, R for Read" << endl
 		<< "S for Stop O for OverWritten, N for NewStart" << endl;
 	while (run)
