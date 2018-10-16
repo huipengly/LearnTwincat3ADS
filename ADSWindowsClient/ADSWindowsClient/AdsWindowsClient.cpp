@@ -232,56 +232,33 @@ int Connect()
 	return 0;
 }
 
+struct CartesianCoordinates
+{
+	double x;
+	double y;
+	double z;
+	double a;		//绕z轴旋转角度
+	double b;		//绕y轴
+	double c;		//绕x轴
+};
+
+CartesianCoordinates cartesian_test = {-9, 600, 0, 0, 0, 0 };
+bool status = false;
+
+void send_xy();
+void send_xyz();
+
 int main()
 {
-	//DH is DH model of the manipulator. 
-	// rows is DOF, cols is alpha/a/theta/d.
-	// the angle uses radian.
-	// the distance uses mm.
-	Eigen::MatrixXd DH(3, 4);
-
-	//三连杆DH模型(改）
-	DH << 0, 314, 0, 0,
-		0, 367, 0, 0,
-		0, 0, 0, 0;
-
-	Eigen::VectorXd ref(3);
-	ref << 0, 0, 0;             //上一周期关节角作为逆解的参考角
-	ref = ref * PI / 180;
-
-
-	Eigen::VectorXd angle(3);
-	angle << 60, 0, 0;          //提供一个目标位姿
-	angle = angle * PI / 180;
-
-
-	Eigen::Matrix4d T1 = DH_Foward(DH, angle);              //求取目标点的位姿
-	std::cout << "其正解末端位姿为：\n" << T1 << "\n" << endl;
-
-	Eigen::MatrixXd Jacobn = DH_Jacobn(DH, angle);
-	std::cout << "当前位姿下的末端雅克比为：\n" << Jacobn << "\n" << endl;
-
-	Eigen::MatrixXd Jacob0 = DH_Jacob0(DH, angle);
-	std::cout << "当前位姿下的基座雅克比为: \n" << Jacob0 << "\n" << endl;
-
-	Eigen::VectorXd angle2 = DH_Inverse(DH, T1, ref);         //经逆解求得的关节角
-	std::cout << "当前位姿下反解关节角为：\n" << angle2 * 180 / PI << "\n" << endl;
-
-	Eigen::Matrix4d T2 = DH_Foward(DH, angle2);               //求取逆解出来的关节角对应的位姿，与目标点位姿进行比较，若一致，则逆解正确
-	std::cout << "反解对应的末端位姿为：\n" << T2 << "\n" << endl;
-
-	Value2[0] = angle2(0) * 180 / PI;
-
 	if (!Connect())
 	{
 		cout << "Connect success!" << endl;
 	};
 	//发送运动数据
-	AdsSyncReadWriteReqEx2(nPort, &Addr, 0x01, 0x01, 0, NULL, sizeof(Value1), &Value1, NULL);
-	AdsSyncReadWriteReqEx2(nPort, &Addr, 0x01, 0x01, 0, NULL, sizeof(Value2), &Value2, NULL);
-	AdsSyncReadWriteReqEx2(nPort, &Addr, 0x01, 0x01, 0, NULL, sizeof(Value3), &Value3, NULL);
-	//发送完成标志
-	AdsSyncReadWriteReqEx2(nPort, &Addr, 0x01, 0x02, 0, NULL, 0, NULL, NULL);
+	while (1)
+	{
+		send_xy();
+	}
 
 	nErr = AdsPortClose(); //关闭ADS通讯端口
 	if (nErr) cerr << "Error: AdsPortClose: " << nErr << '\n'; //检查关闭通讯端口的操作是否执行成功
@@ -290,4 +267,20 @@ int main()
 	cout << "press any key to close..." << endl;
 	getchar();
 	return 0;
+}
+
+void send_xy()
+{
+	cout << "please input target's cartesian coordinates, use x y:" << endl;
+	cin >> cartesian_test.x >> cartesian_test.y;
+	AdsSyncReadWriteReq(&Addr, 0x02, 0x01, sizeof(bool), &status, sizeof(CartesianCoordinates), &cartesian_test);
+	getchar();
+}
+
+void send_xyz()
+{
+	cout << "please input target's cartesian coordinates, use x y z:" << endl;
+	cin >> cartesian_test.x >> cartesian_test.y >> cartesian_test.z;
+	AdsSyncReadWriteReq(&Addr, 0x02, 0x01, sizeof(bool), &status, sizeof(CartesianCoordinates), &cartesian_test);
+	getchar();
 }
